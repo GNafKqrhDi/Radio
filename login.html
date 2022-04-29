@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=elemice-width, initial-scale=1, shrink-to-fit=no">
+	
+	<!-- Bootstrap CSS -->
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	
+	<!-- Animate CSS -->
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.0/animate.min.css">
+	
+	<title>Radio</title>
+</head>
+<body>
+    <div class="container">
+		<div class="row">
+			<div class="col">
+  
+			<center><h1 class="display-4 mb-3">Radio</h1></center>
+			</div>
+		</div>
+	</div>
+	<div class="container">
+		<div class="row">
+		<div class="col">
+			<div class="card mb-3 animated fadeIn shadow-sm">
+				<center><h3>List of previously used usernames</h3></center>
+				<div class="card-body">
+				{%for user in users%}
+				<h5>{{user}}</h5>
+				<br/>
+				{%endfor%}
+				</div>
+			</div>
+		</div>
+		</div>
+	</div>
+	<form action="/login" method="POST">
+		<div class="container">
+			<div class="row">
+			<div class="col">
+				<div class="card mb-3 animated fadeIn shadow-sm">
+					<center><h3>Choose an Interface name to create address</h3></center>
+					<div class="card-body">
+					{%for elem in ifs%}
+					<input type="radio" id="check" name="check" value="{{elem}}">
+					<label for="{{elem}}">{{elem}}</label>
+					<br/>
+					{%endfor%}
+					</div>
+				</div>
+			</div>
+			</div>
+		</div>
+		
+		<div class="container">
+			<div class="row">
+			<div class="col">
+				<div class="card mb-3 animated fadeIn shadow-sm">
+					<center><h3>Does your interface support fixed IPV6</h3></center>
+					<div class="card-body">
+					<input type="radio" id="check" name="yn" value="y">
+					<label for="y">Yes</label>
+					<br/>
+					<input type="radio" id="check" name="yn" value="n">
+					<label for="n">No</label>
+					<br/>
+					</div>
+				</div>
+			</div>
+			</div>
+		</div>
+		<div class="container">
+			<div class="row">
+			<div class="col">
+				<div class="card mb-3 animated fadeIn shadow-sm">
+					<center><h3>IP's related to each interface name</h3></center>
+					<div class="card-body">
+					{%for if in ifip%}
+					<h4>{{if}}</h4>
+					<br/>
+						{%for ip in ifip[if]%}
+							<h6>{{ip}}</h6>
+						{%endfor%}
+					<br/>
+
+					{%endfor%}
+					</div>
+				</div>
+			</div>
+			</div>
+		</div>
+		<div class="container">
+			<div class="row">
+			<div class="col">
+				<div class="card mb-3 animated fadeIn shadow-sm">
+					<center><h3>Do you already have an IPV6? Then type it</h3></center>
+					<div class="card-body">
+						<h5><input type="text" name="ipv6" style="width:1000px;" placeholder="Choose one from the above according to the interface name"></h5>
+					</div>
+				</div>
+			</div>
+			</div>
+		</div>
+		<div class="container">
+			<div class="row">
+			<div class="col">
+				<div class="card mb-3 animated fadeIn shadow-sm">
+					<div class="card-body">
+						<h2>Username</h2>
+						<h5><input type="text" name="username" style="width:1000px;" placeholder="At most 15 characters"></h5>
+						<input type="submit" value="submit" >
+					</div>
+				</div>
+			</div>
+		</div>
+	</form>
+</body>
+</html>
