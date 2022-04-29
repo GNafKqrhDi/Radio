@@ -1,5 +1,6 @@
 # Radio
-This is a P2P social media called radio, based on IPV6 technology.
+This is a P2P social media called radio, based on IPV6 technology. The idea was to make a truly decentralized network, for example that doesn't need server for creating accounts, connecting to peers, sending hashes or anything. The algorithm will instead assign scores to users who seed correctly and will use those scores also to evaluate which files were sent correctly, therefore only relying on the network to make best decision.
+
 It’s called radio since every user will have his own ”station” to send files, by
 using a randomly generated multicast channel. People who follow the user will actually be listening to his own multicast channel address.
 If someone is not present during a period that someone he follows posts something, when entering the network, the algorithm will connect to peers to send back what happened in the network, therefore the user only share files sent by people he follow.
