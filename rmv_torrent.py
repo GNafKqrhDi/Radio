@@ -16,18 +16,7 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-from json import load, dump
-from time import time
-current_user = str()
-with open("current_user", 'r') as f:
-    current_user = f.read()
-accounts = dict()
-with open("accounts.json", 'r') as f:
-    accounts=load(f)
-if accounts.get(current_user, None)==None:
-    exit()
-accounts[current_user]['time'] = time()
-with open("accounts.json", 'w+') as f:
-    dump(accounts, f, indent=4)
-with open("neighbour.json", "w+") as f:
-    dump(dict(), f, indent=4)
+from os import popen
+ls = popen("ls *.torrent").read().split()
+for e in ls:
+    popen("rm %s & rm %s"%(e, e.replace('.torrent', '')))

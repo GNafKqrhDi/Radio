@@ -62,9 +62,12 @@
               <!-- template content -->
               <div class="card mb-3 animated fadeIn shadow-sm">
                 <div class="card-body">
-                  <h4 class="card-title" id="title"></h4>
-                  <span class="text-muted" id="content"></span>
-                  <span class="text-muted" id="file"></span>
+                    <center><h3 class="card-title" id="user"></h3></center>
+                    <center><h4 class="card-title" id="title"></h4></center>
+                    <span class="text-muted" id="content"></span>
+                    <br/>
+                    <br/>
+                    <span class="text-muted" id="file"></span>
                 </div>
               </div>
 
@@ -118,21 +121,26 @@ function loadItems() {
         // Clone the HTML template
         let template_clone = template.content.cloneNode(true);
 
-        // Query & update the template content
-        template_clone.querySelector("#title").innerHTML = data[i][0];//use ` ${} ` 
-        template_clone.querySelector("#content").innerHTML = data[i][1];
+        //k, feed[k]['title'], feed[k]['content'], feed[k]['account']
+        template_clone.querySelector("#user").innerHTML = data[i][3];
+        template_clone.querySelector("#title").innerHTML = data[i][1];//use ` ${} ` 
+        template_clone.querySelector("#content").innerHTML = data[i][2];
         template_clone.querySelector("#file").innerHTML = `
         <form action="/get_file" method = "GET">
-          <input type="hidden" name="fname" value="${data[i][2]}">
+          <input type="hidden" name="key" value="${data[i][0]}">
           <input type="submit" value="check it out">
         </form>
         <center style="margin-top:-3.0%;">
           <form action="/comment" method = "GET">
-            <input type="hidden" name="key" value="${data[i][3]}">
-            <input type="hidden" name="acc" value="${data[i][4]}">
+            <input type="hidden" name="key" value="${data[i][0]}">
+            <input type="hidden" name="acc" value="${data[i][3]}">
             <input type="submit" value="comment session">
           </form>
-        </center>`;
+        </center>
+        <form style="float:right;margin-top:-3.0%" action="/download" method="GET">
+            <input type="hidden" name="key" value="${data[i][0]}">
+            <input type="submit" value="download">
+        </form>`;
         // Append template to dom
         scroller.appendChild(template_clone);
 

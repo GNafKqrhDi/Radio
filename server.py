@@ -1,3 +1,4 @@
+
 #    Radio, The P2P social network that relies on multicast channels
 #    Copyright (C) 2022  George Stewart
 #
@@ -45,7 +46,7 @@ if not login:
     with open("neighbour.json", 'w+') as f:
         dump(neighbour, f, indent=4)
 
-    send_msg(user=current_user, protocol=3)
+    send_msg(user=current_user, proto=3)
 
 port=5005
 print(accounts['ip'], port)

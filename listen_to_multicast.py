@@ -1,3 +1,4 @@
+
 #    Radio, The P2P social network that relies on multicast channels
 #    Copyright (C) 2022  George Stewart
 #
@@ -54,7 +55,7 @@ accounts = accounts[current_user]
 
 for k in accounts:
     if k!='time' and k!='ip':
-        group = socket.inet_pton(socket.AF_INET6, accounts[k]["multicast"]) + ifis
+        group = socket.inet_pton(socket.AF_INET6, accounts[k]) + ifis
         sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP, group)
 sock_addr = socket.getaddrinfo(local_addr, mcast_port, socket.AF_INET6, socket.SOCK_DGRAM)[0][4]
 sock.bind(sock_addr)
