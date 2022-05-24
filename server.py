@@ -37,6 +37,7 @@ if not login:
     write("login", '1')
     for acc in accounts:
         if acc!='time' and acc!='ip':
+            print(acc)
             if neighbour.get(acc, None)==None:
                 neighbour[acc] = dict()
             neighbour[acc]['addrs'] = [ip for ip in get_random_ips(10, acc) if ip !=accounts['ip']]

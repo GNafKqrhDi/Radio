@@ -48,6 +48,9 @@ def index():
 def exitit():
     write('exit', '1')
     _exit(0)
+@app.route('/kill')
+def kill():
+    _exit(0)
 @app.route("/load")
 def loadit():
     if request.method=='GET':
@@ -67,9 +70,9 @@ def get_file():
     if not bool(int(feed[key]['downloaded'])):
         return "<h1>!!!FILE NOT YET DOWNLOADED!!!</h1>"
     if bool(int(feed[key]['downloaded'])) and feed[key]['file']=='':
-        aux = decompress(feed[key])
+        aux = decompress(feed[key]['compressed_file'], feed[key]['account']+'_folder/')
         feed[key]['file']=aux[1]
-        feed[key]['isFolder']=int(aux[0])
+        feed[key]['isFolder']=int(aux[0])#check if isfolder exists for creating file
         with open("feed.json", 'w+') as f:
             dump(feed, f, indent=4)
     if not bool(feed[key]['isFolder']):
@@ -149,7 +152,6 @@ def submit_post():
             seeds[fname+'.torrent']=dict()
             seeds[fname+'.torrent']['key']=new_hash
             seeds[fname+'.torrent']['downloaded']=1
-            seeds.append(fname+'.torrent')
             dump(seeds, f, indent=4)
         aux = dict()
         aux[new_hash]=dict()

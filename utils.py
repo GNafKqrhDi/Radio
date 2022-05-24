@@ -308,11 +308,11 @@ def process_server(data, current_user, accounts, neighbour, src):
                     if proto==6:
                         if neighbour.get(acc, None)!=None:
                             if neighbour[acc].get(user, None)!=None:
-                                data_decoded = data_decoded[L:]
+                                data_decoded = bytes(data_decoded[L:], 'ascii')
                                 with open(str(neighbour[acc][user]['num'])+'@'+acc, 'ab+') as f:
-                                    f.write(data)
+                                    f.write(data_decoded)
                                 with open(str(neighbour[acc][user]['num'])+'@'+acc+'_size', 'a+') as f:
-                                    f.write("%d "%(len(data)))
+                                    f.write("%d "%(len(data_decoded)))
 def process_multicast(data, current_user, accounts, src=None):
     data_decoded = data.decode()
     proto = int(data_decoded[25+256:25+257])
@@ -395,13 +395,13 @@ def process_multicast(data, current_user, accounts, src=None):
                             aux[new_hash]=dict()
                             aux[new_hash]["title"]=title
                             aux[new_hash]["content"]=content
-                            aux[new_hash]["file"]="None" #no file until Downloaded
+                            aux[new_hash]["file"]="" #no file until Downloaded
                             aux[new_hash]["comment"]=acc+'_folder/'+new_hash+"@comment"
                             aux[new_hash]["account"]=acc
                             aux[new_hash]["time"] = time()
                             aux[new_hash]["link"] = link
                             aux[new_hash]["downloaded"] = 0
-                            aux[new_hash]['compressed_file'] = 'None'
+                            aux[new_hash]['compressed_file'] = ''
                             aux.update(feed[current_user])
                             feed[current_user] = aux
                             with open('feed.json', 'w+') as f:
@@ -680,4 +680,10 @@ def decompress(fname, path):
         else:
             tar.extractall(path=path)
             members = tar.getmembers()
-            return [members[0].isdir(), members[0].get_info()['name']]
+            return [members[0].isdir(),path+'/'+members[0].get_info()['name']]
+def kill_server():
+    request = b"GET /kill HTTP/1.1\nHost: 127.0.0.1:5000\n\n"
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect(("127.0.0.1", 5000))
+    s.send(request)
+    s.close()

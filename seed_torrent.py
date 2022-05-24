@@ -16,12 +16,14 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
+from utils import *
 import libtorrent as lt
-from json import load
-from os import popen, getpid
+from json import load, dump
+from os import popen
 from time import sleep
 import sys
-
+with open('current_user', 'r') as f:
+    user = f.read().replace('\n', '')
 with open("seeds", 'r') as f:
     seeds = load(f)
 ses = lt.session()
@@ -33,7 +35,7 @@ ses.start_dht()
 while True:
     sleep(5)
     for torrent in handles:
-        s = handle[torrent].status()
+        s = handles[torrent].status()
         state_str = ['queued', 'checking', 'downloading metadata', \
           'downloading', 'finished', 'seeding', 'allocating', 'checking fastresume']
 
@@ -48,6 +50,7 @@ while True:
             with open('feed.json', 'r') as f:
                 feed = load(f)
             with open('feed.json', 'w+') as f:
-                feed[seeds[torrent]['key']]['downloaded']=1
-                feed[seeds[torrent]['key']]['compressed_file']=torrent.replace('.torrent', '')
+                feed[user][seeds[torrent]['key']]['downloaded']=1
+                feed[user][seeds[torrent]['key']]['compressed_file']=torrent.replace('.torrent', '')
                 dump(feed, f, indent=4)
+            kill_server()
