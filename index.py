@@ -25,32 +25,35 @@ from os import popen, _exit, path
 PWD = popen("pwd").read().replace('\n', '')
 app = Flask(__name__, template_folder=PWD)
 BLOCK_SIZE = 1000
-feed = dict()
+feed= dict()
 with open("feed.json") as f:
     feed=load(f)
 user_hash_ip = 25+128+32+8+128+1
 user = read('current_user').replace('\n', '')
-feed = feed[user]
-db=[[k, feed[k]['title'], feed[k]['content'], feed[k]['account']] for k in feed]
+db=[[k, feed[user][k]['title'], feed[user][k]['content'], feed[user][k]['account']] for k in feed[user]]
 posts = len(db)
 quantity=20
 PORT=5000
 @app.route("/")
 def index():
     kill = int(read('kill'))
+    ex = int(read('exit'))
     if request.method=='GET':
         if kill==1:
             write("kill", '0')
+            _exit(0)
+        if ex==1:
             _exit(0)
         return render_template("index.html")
 
 @app.route("/exit")
 def exitit():
     write('exit', '1')
-    _exit(0)
+    return redirect('/')
 @app.route('/kill')
 def kill():
-    _exit(0)
+    write('kill', '1')
+    return redirect('/')
 @app.route("/load")
 def loadit():
     if request.method=='GET':
@@ -67,16 +70,16 @@ def loadit():
 @app.route('/get_file')
 def get_file():
     key= request.args['key']
-    if not bool(int(feed[key]['downloaded'])):
+    if not bool(int(feed[user][key]['downloaded'])):
         return "<h1>!!!FILE NOT YET DOWNLOADED!!!</h1>"
-    if bool(int(feed[key]['downloaded'])) and feed[key]['file']=='':
-        aux = decompress(feed[key]['compressed_file'], feed[key]['account']+'_folder/')
-        feed[key]['file']=aux[1]
-        feed[key]['isFolder']=int(aux[0])#check if isfolder exists for creating file
+    if bool(int(feed[user][key]['downloaded'])) and feed[user][key]['file']=='':
+        aux = decompress(feed[user][key]['compressed_file'], feed[user][key]['account']+'_folder/')
+        feed[user][key]['file']=aux[1]
+        feed[user][key]['isFolder']=int(aux[0])#check if isfolder exists for creating file
         with open("feed.json", 'w+') as f:
             dump(feed, f, indent=4)
-    if not bool(feed[key]['isFolder']):
-        fname = feed[key]['file']
+    if not bool(feed[user][key]['isFolder']):
+        fname = feed[user][key]['file']
         ftype = fname.split('.')[-1] if '.' in fname else ""
         if ftype=='txt' or ftype=="":
             popen("""gedit "%s" """%(fname))
@@ -91,10 +94,10 @@ def get_file():
 @app.route('/download')
 def download():
     key = request.args['key']
-    if feed.get(key, None)!=None:
+    if feed[user].get(key, None)!=None:
         write('kill', '1')
         write('seed_torrent_up', '1')
-        torrent_name = magnet_to_torrent(feed[key]['link'])
+        torrent_name = magnet_to_torrent(feed[user][key]['link'])
         with open('seeds', 'r') as f:
             seeds = load(f)
         with open('seeds', 'w+') as f:
@@ -109,7 +112,7 @@ def comment():
         acc = request.args['acc']
         k = request.args['key']
         ls = list()
-        with open(feed[k]['comment'], 'r') as f:
+        with open(feed[user][k]['comment'], 'r') as f:
             dfs(ls, load(f))
         ls = [[e[0], e[1], e[2]*5, (e[3][1:len(e[3])] if len(e[3])>0 else e[3])] for e in ls]
         return render_template("comment.html", ls=ls, key=k, acc=acc)
@@ -121,7 +124,7 @@ def comment():
         #TODO Organize it here
         msg=(("%04d"+request.form['path']+"%04d"+request.form['new_text'])%(len(request.form['path']), len(request.form['new_text'])))
         send_msg(user=user, acc=acc, proto=7, msg=msg)
-        ls = write_msg(request.form["new_text"], feed[key]['comment'], path, user)
+        ls = write_msg(request.form["new_text"], feed[user][key]['comment'], path, user)
         ls = [[e[0], e[1], e[2]*5, e[3]] for e in ls]
         return render_template("comment.html", ls=ls, key=key, acc=acc)
 @app.route('/submit_post', methods=['POST', 'GET'])
@@ -144,7 +147,7 @@ def submit_post():
         with open(user+'_folder/'+new_hash+"@comment", 'w+') as f:
             dump(dict(), f)
         with open('feed.json', 'r') as f:
-            feed = load(f)
+            feed= load(f)
         link = upload_torrent(fname)
         with open('seeds', 'r') as f:
             seeds = load(f)
@@ -207,7 +210,7 @@ def create_account():
                 with open('accounts.json', 'w+') as f:
                     dump(accounts, f, indent=4)
                 with open('feed.json', 'r') as f:
-                    feed = load(f)
+                    feed= load(f)
                 feed[new_user]=dict()
                 with open('feed.json', 'w+') as f:
                     dump(feed, f, indent=4)
@@ -318,7 +321,7 @@ def info():
                 dump(accounts, f, indent=4)
             feed= dict()
             with open('feed.json', 'r') as f:
-                feed = load(f)
+                feed= load(f)
             if feed[user].get(delete, None)!=None:
                 feed[user].pop(delete)
             with open('feed.json', 'w+') as f:
