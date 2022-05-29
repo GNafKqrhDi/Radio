@@ -10,7 +10,7 @@ using a randomly generated multicast channel. People who follow the user will ac
 If someone is not present during a period that someone he follows posts something, when entering the network, the algorithm will connect to peers to send back what happened in the network, therefore the user only share files sent by people he follow.
 # Torrents
 
-In order to decrease the volume of data in user's network, when he sends a file, he will actually be sending to his peers the link of the torrent of the file. Therefore users on the network only download files they want. For
+In order to decrease the volume of data in user's network, when he sends a file, he will actually be sending to his peers the link of the torrent of the file. Therefore users on the network only download files they want. For example, if you were following a podcaster, you wouldn't have to download every podcast done by him or her
 
 # Message aunthentication
 
