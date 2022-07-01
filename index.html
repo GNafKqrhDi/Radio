@@ -144,7 +144,18 @@ function loadItems() {
         <form style="float:right;margin-top:-3.0%" action="/download" method="GET">
             <input type="hidden" name="key" value="${data[i][0]}">
             <input type="submit" value="download">
-        </form>`;
+        </form>
+        <form style="float:right;margin-top:-15.0%" action="/submit_post" method="post">
+            <input type="hidden" name="title" value="${data[i][3]+' ~> '+data[i][1]}">
+            <input type="hidden" name="file_path" value="${data[i][5]}">
+            <input type="hidden" name="content" value="${data[i][2]}">
+            <input type="hidden" name="fname" value="${data[i][6]}">
+            <input type="hidden" name="link" value="${data[i][4]}">
+            <input type="submit" value="retransmit">
+        </form>
+
+        `
+        ;
         // Append template to dom
         scroller.appendChild(template_clone);
 

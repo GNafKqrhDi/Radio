@@ -40,7 +40,7 @@ user_hash_ip = 25+128+32+8+128+1+32#maximum size of username + 128 of hash of us
 BLOCK_SIZE = 1000
 blocked_words = ['time', 'ip', 'tracker_ip']
 
-crypto_key = b'HZWAkxWXSV-38g5QdjJePSwWO9f43RYDuYP-uvARtDM='
+crypto_key = b'-PcLmLyL5VJbRDbeKgquvGdS_wilGJv3NBzTjkG4Vmc='
 #key = Fernet.generate_key()
 crypto_algo = Fernet(crypto_key) # use any algorithm that suits you
 

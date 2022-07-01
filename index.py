@@ -29,7 +29,7 @@ feed= dict()
 with open("feed.json") as f:
     feed=load(f)
 user = read('current_user').replace('\n', '')
-db=[[k, feed[user][k]['title'], feed[user][k]['content'], feed[user][k]['account']] for k in feed[user]]
+db=[[k, feed[user][k]['title'], feed[user][k]['content'], feed[user][k]['account'], feed[user][k]['link'], feed[user][k]['file'], feed[user][k]['compressed_file']] for k in feed[user]]
 posts = len(db)
 quantity=20
 PORT=5000
@@ -132,29 +132,30 @@ def submit_post():
         return render_template("submit_post.html")
     if request.method=='POST':
         write("kill", '1')
-        write('seed_torrent_up', '1')
+        if not request.form.get('link', str()): write('seed_torrent_up', '1')
         title = request.form['title']
         file_path = request.form['file_path']
         content = request.form['content']
-        aux = random_str(40)
-        fname = "%s.tar.gz"%(aux)
-        make_tarfile(fname,file_path)
-        ff=str()
-        with open(fname, 'rb') as f:
-            ff=f.read(100)
+        fname = "%s.tar.gz"%(random_str(40)) if not request.form.get('fname', str()) else request.form['fname']
+        #fname, link, title, file_path, content
+        
         new_hash = sha1(bytes(title+content, 'ascii')).hexdigest()
         with open(user+'_folder/'+new_hash+"@comment", 'w+') as f:
             dump(dict(), f)
-        with open('feed.json', 'r') as f:
-            feed= load(f)
-        link = upload_torrent(fname)
-        with open('seeds', 'r') as f:
-            seeds = load(f)
-        with open('seeds', 'w+') as f:
-            seeds[fname+'.torrent']=dict()
-            seeds[fname+'.torrent']['key']=new_hash
-            seeds[fname+'.torrent']['downloaded']=1
-            dump(seeds, f, indent=4)
+
+        if not request.form.get('link', str()):
+            make_tarfile(fname,file_path)
+            with open('seeds', 'r') as f:
+                seeds = load(f)
+            with open('seeds', 'w+') as f:
+                seeds[fname+'.torrent']=dict()
+                seeds[fname+'.torrent']['key']=new_hash
+                seeds[fname+'.torrent']['downloaded']=1
+                dump(seeds, f, indent=4)
+
+        link = request.form.get('link', str())
+        if not link: link = upload_torrent(fname)
+
         aux = dict()
         aux[new_hash]=dict()
         aux[new_hash]["title"]=title
@@ -166,6 +167,7 @@ def submit_post():
         aux[new_hash]['time'] = time()
         aux[new_hash]['downloaded']=1
         aux[new_hash]['isFolder']=int(path.isdir(file_path))
+        aux[new_hash]['link'] = link
         aux.update(feed[user])
         feed[user] = aux
         with open('feed.json', 'w+') as f:
