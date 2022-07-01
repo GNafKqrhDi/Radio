@@ -24,11 +24,10 @@ from os import popen, _exit, path
 
 PWD = popen("pwd").read().replace('\n', '')
 app = Flask(__name__, template_folder=PWD)
-BLOCK_SIZE = 1000
+block_size = 1000
 feed= dict()
 with open("feed.json") as f:
     feed=load(f)
-user_hash_ip = 25+128+32+8+128+1
 user = read('current_user').replace('\n', '')
 db=[[k, feed[user][k]['title'], feed[user][k]['content'], feed[user][k]['account']] for k in feed[user]]
 posts = len(db)
@@ -143,7 +142,7 @@ def submit_post():
         ff=str()
         with open(fname, 'rb') as f:
             ff=f.read(100)
-        new_hash = sha1(bytes(title+content, 'UTF-8')).hexdigest()
+        new_hash = sha1(bytes(title+content, 'ascii')).hexdigest()
         with open(user+'_folder/'+new_hash+"@comment", 'w+') as f:
             dump(dict(), f)
         with open('feed.json', 'r') as f:
@@ -200,13 +199,15 @@ def create_account():
                 multicast = random_multicast()
                 if yn=='y':
                     ipv6=exp_ipv6(request.form["ipv6"])
+                tracker_ip = ipv6_rmv_dots(exp_ipv6(request.form["tracker_ipv6"]))
                 accounts = dict()
                 with open('accounts.json', 'r') as f:
                     accounts = load(f)
                 accounts[new_user] = dict()
                 accounts[new_user][new_user]= multicast
                 accounts[new_user]['time']=time()-604800 #a week
-                accounts[new_user]['ip']=ipv6
+                accounts[new_user]['ip']=ipv6 if ipv6!=str() else 'None'
+                accounts[new_user]['tracker_ip'] = tracker_ip
                 with open('accounts.json', 'w+') as f:
                     dump(accounts, f, indent=4)
                 with open('feed.json', 'r') as f:
@@ -215,15 +216,15 @@ def create_account():
                 with open('feed.json', 'w+') as f:
                     dump(feed, f, indent=4)
                 with open('users@'+new_user, 'wb+') as f:
-                    f.write(b'0'*BLOCK_SIZE)
+                    f.write(b'0'*block_size)
                 with open('users@'+new_user+'_input', 'w+') as f:
                     f.write('0')
                 with open('keys@'+new_user, 'wb+') as f:
-                    f.write(b'0'*BLOCK_SIZE)
+                    f.write(b'0'*block_size)
                 with open('keys@'+new_user+'_input', 'w+') as f:
                     f.write('0')
                 with open('ips@'+new_user, 'wb+') as f:
-                    f.write(b'0'*BLOCK_SIZE)
+                    f.write(b'0'*block_size)
                 with open('ips@'+new_user+'_input', 'w+') as f:
                     f.write('0')
                 with open(new_user, 'w+') as f:
@@ -240,7 +241,8 @@ def create_account():
                     f.write('')
                 popen('mkdir %s_folder'%(new_user))
                 hsh = gen_key(128, new_user)
-                search(bytes(new_user+'#'*(25-len(new_user))+hsh+ipv6_rmv_dots(multicast)+"0.500000"+hsh+'0', 'ascii'), "users@"+new_user, 25,insert=True, update=False)
+                #***
+                search(bytes(new_user+'#'*(25-len(new_user))+hsh+ipv6_rmv_dots(multicast)+"0.500000"+hsh+'0'+tracker_ip, 'ascii'), "users@"+new_user, 25,insert=True, update=False)
                 write('current_user', new_user)
             else:
                 write('current_user', new_user+userid[new_user])
@@ -253,6 +255,7 @@ def follow():
         acc= request.args['acc']
         res = search(bytes(key+'#'*(user_hash_ip-len(key)), 'ascii'), "users@"+acc, 25, insert=False, update=False)[1]
         multicast = toipv6(res[25+128:25+128+32])
+        tracker_ip = res[25+128+32+8+128+1:25+128+32+8+128+1+32]
         accounts = dict()
         with open('accounts.json', 'r') as f:
             accounts = load(f)
@@ -260,15 +263,15 @@ def follow():
             accounts[user][key]=multicast
             popen("mkdir %s_folder"%(key))
             with open('users@'+key, 'wb+') as f:
-                f.write(b'0'*BLOCK_SIZE)
+                f.write(b'0'*block_size)
             with open('users@'+key+'_input', 'w+') as f:
                 f.write('0')
             with open('keys@'+key, 'wb+') as f:
-                f.write(b'0'*BLOCK_SIZE)
+                f.write(b'0'*block_size)
             with open('keys@'+key+'_input', 'w+') as f:
                 f.write('0')
             with open('ips@'+key, 'wb+') as f:
-                f.write(b'0'*BLOCK_SIZE)
+                f.write(b'0'*block_size)
             with open('ips@'+key+'_input', 'w+') as f:
                 f.write('0')
             with open(key, 'w+') as f:
@@ -284,14 +287,15 @@ def follow():
             with open("week_data@"+key+'_size', 'w+') as f:
                 f.write('')
             hsh = res[25+128+32+8:25+128+32+8+128]
-            search(bytes(key+'#'*(25-len(key))+hsh+ipv6_rmv_dots(exp_ipv6(multicast))+"0.500000"+hsh+'0', 'ascii'), 'users@'+key, 25, insert=True, update=False)
+            search(bytes(key+'#'*(25-len(key))+hsh+ipv6_rmv_dots(exp_ipv6(multicast))+"0.500000"+hsh+'0'+tracker_ip, 'ascii'), 'users@'+key, 25, insert=True, update=False)
+            search(bytes(tracker_ip, 'ascii'), 'ips@'+key, 32, insert=True, update=False)
             with open('accounts.json', 'w+') as f:
                 dump(accounts, f, indent=4)
             send_msg(user=user, proto=1, msg=None, acc=key, ipv6=str(), content=str())
         else:
             res = search(bytes(key+'#'*(user_hash_ip-len(key)), 'ascii'), "users@"+acc, 25, insert=False, update=False)[1]
             hsh = res[25+128+32+8:25+128+32+8+128]
-            res = search(bytes(key+'#'*(25-len(key))+hsh+ipv6_rmv_dots(exp_ipv6(multicast))+"0.500000"+hsh+'0', 'ascii'), 'users@'+key, 25, insert=True, update=False)
+            res = search(bytes(key+'#'*(25-len(key))+hsh+ipv6_rmv_dots(exp_ipv6(multicast))+"0.500000"+hsh+'0'+tracker_ip, 'ascii'), 'users@'+key, 25, insert=True, update=False)
         return redirect('/')
 @app.route('/info', methods=['GET', 'POST'])
 def info():
@@ -338,10 +342,10 @@ def info():
         else:
             block = request.form['block']
             send_msg(user=user, proto=9, msg=block, acc=user)
-            search(bytes(block+'#'*(user_hash_ip-len(block)-1)+'1', 'ascii'), 'users@'+user, 25, insert=False, update=False)
+            search(bytes(block+'#'*(user_hash_ip-len(block)-1)+'1'+'0'*32, 'ascii'), 'users@'+user, 25, insert=False, update=False)
         return redirect('/info')
 @app.route('/add_link', methods=['GET', 'POST'])
-def add_link():#TODO check if link is valid
+def add_link():
     if request.method=='GET':
         return render_template("add_link.html")
     if request.method=='POST':
@@ -350,23 +354,26 @@ def add_link():#TODO check if link is valid
             return "<html><h1>You haven't logged in</h1></html>"
         link = request.form['link'].replace('http://', '').replace('127.0.0.1:%d/'%(PORT), '').replace('localhost:%d/'%(PORT), '')
         acc = link[0:25].replace('#', '')
+#       user_hash_ip = 25+128+32+8+128+1+32 
         multicast = toipv6(link[25+128:25+128+32])
+        tracker_ip = link[25+128+32+8+128+1:]
         accounts = dict()
         with open('accounts.json', 'r') as f:
             accounts = load(f)
         if accounts[user].get(acc, None)==None:
+            write('kill', '1')
             accounts[user][acc]=multicast
             popen("mkdir %s_folder"%(acc))
             with open('users@'+acc, 'wb+') as f:
-                f.write(b'0'*BLOCK_SIZE)
+                f.write(b'0'*block_size)
             with open('users@'+acc+'_input', 'w+') as f:
                 f.write('0')
             with open('keys@'+acc, 'wb+') as f:
-                f.write(b'0'*BLOCK_SIZE)
+                f.write(b'0'*block_size)
             with open('keys@'+acc+'_input', 'w+') as f:
                 f.write('0')
             with open('ips@'+acc, 'wb+') as f:
-                f.write(b'0'*BLOCK_SIZE)
+                f.write(b'0'*block_size)
             with open('ips@'+acc+'_input', 'w+') as f:
                 f.write('0')
             with open(acc, 'w+') as f:
@@ -382,6 +389,7 @@ def add_link():#TODO check if link is valid
             with open("week_data@"+acc+'_size', 'w+') as f:
                 f.write('')
             search(bytes(link, 'ascii'), "users@"+acc, 25, insert=True, update=False)
+            search(bytes(tracker_ip, 'ascii'), 'ips@'+acc, 32, insert=True, update=False)
             with open('accounts.json', 'w+') as f:
                 dump(accounts, f, indent=4)
             send_msg(user=user, proto=1, msg=None, acc=acc, ipv6=str(), content=str())
@@ -392,4 +400,3 @@ try:
     app.run(port=PORT)
 except OSError:
     _exit(0)
-

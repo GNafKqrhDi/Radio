@@ -56,20 +56,15 @@ while True:
                 with open(fnames[i]+'_size', 'r') as f2:
                     data_size = list(map(int, f2.read().split()))
                 pos = 0
-                with open(fnames[i]+'_ip', 'r+b') as ip:
-                    for size in data_size:
-                        data = f.read(size)
-                        if len(data)>0:
-                            try:
-                                timestamp = float()
-                                if i==1:
-                                    timestamp = float(data[0:25].decode())
-                                else:
-                                    timestamp = float(data[4:25+4].decode())
-                                ls.append((timestamp, pos, size, i,toipv6(ip.read(32).decode())))
-                            except ValueError:
-                                pass
-                            pos+=size
+                for size in data_size:
+                    data = f.read(size)
+                    if len(data)>0:
+                        try:
+                            timestamp = float(data[32:32+25].decode())
+                            ls.append((timestamp, pos, size, i))
+                        except ValueError:
+                            pass
+                        pos+=size
         ls = sorted(ls)
         print(ls)
         for elem in ls:
@@ -77,9 +72,9 @@ while True:
             with open('neighbour.json', 'r') as f:
                 neighbour = load(f)
             if elem[3]==0:
-                process_server(data, current_user, accounts, neighbour, elem[4])
+                process_server(data, current_user, accounts, neighbour)
             else:
-                process_multicast(data, current_user, accounts, elem[4])
+                process_multicast(data, current_user, accounts)
         for i in range(2):
             with open(fnames[i], 'wb+') as f:
                 f.write(b'')

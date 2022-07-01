@@ -32,22 +32,20 @@ if accounts['ip']=='None':
 neighbour = dict()
 with open('neighbour.json', 'r') as f:
     neighbour = load(f)
-login = bool(int(read("login")))
-if not login:
-    write("login", '1')
-    for acc in accounts:
-        if acc!='time' and acc!='ip':
-            print(acc)
-            if neighbour.get(acc, None)==None:
-                neighbour[acc] = dict()
+
+for acc in accounts:
+    if acc not in blocked_words:
+        print(acc)
+        if neighbour.get(acc, None)==None:
+            neighbour[acc] = dict()
+            neighbour[acc]['login']=0
             neighbour[acc]['addrs'] = [ip for ip in get_random_ips(10, acc) if ip !=accounts['ip']]
             neighbour[acc]['count'] = 0
             neighbour[acc]['type'] = '3' if bool(int(read('has_accounts@'+acc))) else '8'
+with open("neighbour.json", 'w+') as f:
+    dump(neighbour, f, indent=4)
 
-    with open("neighbour.json", 'w+') as f:
-        dump(neighbour, f, indent=4)
-
-    send_msg(user=current_user, proto=3)
+send_msg(user=current_user, proto=3)
 
 port=5005
 print(accounts['ip'], port)
@@ -72,13 +70,11 @@ while True:
             while c:
                 data+= c
                 c = conn.recv(1)
-            data =struct.pack("I%ds" % (len(data),), len(data), data)
+            data = crypto_algo.decrypt(data)
             with open('server_packet', 'ab') as f:
                 f.write(data)
             with open ('server_packet_size', 'a+') as f:
                 f.write("%d "%(len(data)))
-            with open('server_packet_ip', 'ab') as f:
-                f.write(bytes(ipv6_rmv_dots(exp_ipv6(src[0])), 'ascii'))
         except UnicodeDecodeError:
             pass
     conn.close()

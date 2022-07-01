@@ -37,6 +37,5 @@ do
             python3 index.py
 		fi
         for p in "${pids[@]}" ; do kill "$p"; done
-		echo "1" > "login"
 	fi
 done
